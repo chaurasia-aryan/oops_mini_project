@@ -77,7 +77,7 @@ class PlaceholderText(tk.Text):
         return "" if val == self.placeholder else val
 
 
-# Signup window — simple aur straightforward
+# Signup window
 class RegistrationWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)

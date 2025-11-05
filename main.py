@@ -1,4 +1,4 @@
-# main.py
+
 from db_simple import create_tables
 from ui import FacebookLogin
 import tkinter as tk

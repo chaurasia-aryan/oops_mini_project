@@ -1,6 +1,3 @@
-# cv.py
-# Camera-based Snake Game, Live Filters, and Mood Detector for TakeBook
-
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -12,8 +9,6 @@ from PIL import Image, ImageTk
 
 mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
-
-# ------------------- Snake Game -------------------
 def play_hand_snake():
     snake = deque()
     snake_len = 10
@@ -53,13 +48,11 @@ def play_hand_snake():
                 if len(snake) > snake_len:
                     snake.popleft()
 
-                # Eat food
                 if dist(head, food) < 25:
                     score += 1
                     snake_len += 5
                     food = new_food(width, height)
 
-                # Draw snake and food
                 for i in range(1, len(snake)):
                     cv2.line(frame, tuple(snake[i - 1]), tuple(snake[i]), (0, 255, 0), 15)
                 cv2.circle(frame, tuple(head), 10, (0, 0, 255), -1)
@@ -67,7 +60,6 @@ def play_hand_snake():
                 cv2.putText(frame, f"Score: {score}", (10, 40),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
-                # Self collision
                 if len(snake) > 10:
                     for i in range(len(snake) - 10):
                         if dist(head, snake[i]) < 10:
@@ -89,7 +81,6 @@ def play_hand_snake():
     cv2.destroyAllWindows()
 
 
-# ------------------- Live Filters -------------------
 class VideoFilterWindow(Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -159,8 +150,6 @@ class VideoFilterWindow(Toplevel):
             self.cap.release()
         self.destroy()
 
-
-# Mood detetctor using Haar cascades
 class MoodDetectorWindow(Toplevel):
   
 
@@ -179,7 +168,6 @@ class MoodDetectorWindow(Toplevel):
 
         Button(self, text="Close", bg="#e74c3c", fg="white", command=self.close_camera).pack(pady=8)
 
-        # load cascades
         self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
         self.smile_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_smile.xml")
 
@@ -207,16 +195,13 @@ class MoodDetectorWindow(Toplevel):
 
         mood = "BT"
         for (x, y, w, h) in faces:
-            # draw a rectangle around face
             cv2.rectangle(frame, (x, y), (x + w, y + h), (90, 200, 255), 2)
 
-            # detect smiles inside face ROI
             roi_gray = gray[y:y + h, x:x + w]
             smiles = self.smile_cascade.detectMultiScale(roi_gray, scaleFactor=1.7, minNeighbors=20)
 
             if len(smiles) > 0:
                 mood ="kush"
-                # draws dabbe around smiles
                 for (sx, sy, sw, sh) in smiles:
                     cv2.rectangle(frame, (x + sx, y + sy), (x + sx + sw, y + sy + sh), (0, 255, 0), 1)
                 break
@@ -226,7 +211,6 @@ class MoodDetectorWindow(Toplevel):
         
         self.status_label.config(text=f"Detected mood: {mood}")
 
-        # Convert to PhotoImage and show in label
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         imgtk = ImageTk.PhotoImage(Image.fromarray(img))
         self.video_label.imgtk = imgtk

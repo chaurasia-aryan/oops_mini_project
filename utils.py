@@ -1,5 +1,3 @@
-# utils.py
-# Common UI elements and constants
 
 import tkinter as tk
 
@@ -10,7 +8,6 @@ SEPARATOR_COLOR = "#dadde1"
 FONT_FAMILY = "Helvetica"
 FONT_BOLD = "Helvetica Bold"
 
-# -------- Placeholder Entry --------
 class PlaceholderEntry(tk.Entry):
     def __init__(self, parent, placeholder, is_password=False, **kwargs):
         super().__init__(parent, **kwargs)
