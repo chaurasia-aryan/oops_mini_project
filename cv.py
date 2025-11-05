@@ -1,5 +1,5 @@
 # cv.py
-# Camera-based Snake Game and Live Filters for TakeBook
+# Camera-based Snake Game, Live Filters, and Mood Detector for TakeBook
 
 import cv2
 import mediapipe as mp
@@ -126,7 +126,7 @@ class VideoFilterWindow(Toplevel):
                                [0.349, 0.686, 0.168],
                                [0.393, 0.769, 0.189]])
             frame = cv2.transform(frame, kernel)
-            frame = np.clip(frame, 0, 255)
+            frame = np.clip(frame, 0, 255).astype("uint8")
         elif f == "Invert":
             frame = cv2.bitwise_not(frame)
         elif f == "Blur":
@@ -156,5 +156,86 @@ class VideoFilterWindow(Toplevel):
     def close_camera(self):
         self.running = False
         if self.cap.isOpened():
+            self.cap.release()
+        self.destroy()
+
+
+# Mood detetctor using Haar cascades
+class MoodDetectorWindow(Toplevel):
+  
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Mood Detector")
+        self.geometry("720x520")
+        self.resizable(False, False)
+
+        Label(self, text="Mood Detector (local)", font=("Helvetica Bold", 12)).pack(pady=8)
+        self.status_label = Label(self, text="Initializing...", font=("Arial", 14))
+        self.status_label.pack(pady=6)
+
+        self.video_label = Label(self, bg="black")
+        self.video_label.pack(padx=10, pady=10, fill="both", expand=True)
+
+        Button(self, text="Close", bg="#e74c3c", fg="white", command=self.close_camera).pack(pady=8)
+
+        # load cascades
+        self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        self.smile_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_smile.xml")
+
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            messagebox.showerror("Camera Error", "Could not open camera!")
+            self.destroy()
+            return
+
+        self.running = True
+        self.update_frame()
+
+    def update_frame(self):
+        if not self.running:
+            return
+        ret, frame = self.cap.read()
+        if not ret:
+            self.after(100, self.update_frame)
+            return
+
+        frame = cv2.flip(frame, 1)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(100, 100))
+
+        mood = "BT"
+        for (x, y, w, h) in faces:
+            # draw a rectangle around face
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (90, 200, 255), 2)
+
+            # detect smiles inside face ROI
+            roi_gray = gray[y:y + h, x:x + w]
+            smiles = self.smile_cascade.detectMultiScale(roi_gray, scaleFactor=1.7, minNeighbors=20)
+
+            if len(smiles) > 0:
+                mood ="kush"
+                # draws dabbe around smiles
+                for (sx, sy, sw, sh) in smiles:
+                    cv2.rectangle(frame, (x + sx, y + sy), (x + sx + sw, y + sy + sh), (0, 255, 0), 1)
+                break
+
+        
+        cv2.putText(frame, f"Mood: {mood}", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 2, cv2.LINE_AA)
+        
+        self.status_label.config(text=f"Detected mood: {mood}")
+
+        # Convert to PhotoImage and show in label
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        imgtk = ImageTk.PhotoImage(Image.fromarray(img))
+        self.video_label.imgtk = imgtk
+        self.video_label.config(image=imgtk)
+
+        self.after(60, self.update_frame) 
+
+    def close_camera(self):
+        self.running = False
+        if hasattr(self, "cap") and self.cap.isOpened():
             self.cap.release()
         self.destroy()

@@ -1,5 +1,3 @@
-# db_simple.py
-# Simple SQLite DB for TakeBook (users + posts)
 
 import sqlite3
 
@@ -36,7 +34,7 @@ def create_tables():
     conn.commit()
     conn.close()
 
-# ---------- USER CRUD ----------
+
 def add_user(email, password):
     conn = get_conn()
     cur = conn.cursor()
@@ -57,7 +55,7 @@ def verify_user(email, password):
     conn.close()
     return row is not None
 
-# ---------- POST CRUD ----------
+
 def add_post(author, content, image_path=None):
     conn = get_conn()
     cur = conn.cursor()
